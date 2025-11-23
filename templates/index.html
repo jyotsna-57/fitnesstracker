@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="app-title">
+            <i class="fas fa-heartbeat"></i>
+            <h1>Fitness Tracker</h1>
+        </div>
+        <div class="date-display">
+            <i class="far fa-calendar-alt"></i>
+            <span>{{ today }}</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('reports') }}">Reports</a>
+            <a href="{{ url_for('profile') }}">Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="welcome">
+            <h2>Welcome, {{ user.name }}!</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Calories Consumed</h3>
+                    <p>{{ total_calories_consumed }} / {{ user.daily_calorie_target or 2000 }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Calories Burned</h3>
+                    <p>{{ total_calories_burned }}</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Net Calories</h3>
+                    <p>{{ total_calories_consumed - total_calories_burned }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="column">
+                <!-- Workouts Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-running"></i> Today's Workouts</h2>
+                        <button class="add-btn" id="showWorkoutForm"><i class="fas fa-plus"></i> Add Workout</button>
+                    </div>
+                    
+                    <div class="form-container" id="workoutForm">
+                        <form action="{{ url_for('add_workout') }}" method="POST">
+                            <input type="hidden" name="date" value="{{ today }}">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="exerciseType">Exercise Type</label>
+                                    <input type="text" id="exerciseType" name="exercise_type" class="form-control" placeholder="e.g., Running, Weightlifting" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="duration">Duration (minutes)</label>
+                                    <input type="number" id="duration" name="duration" class="form-control" placeholder="30" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="workoutNotes">Notes</label>
+                                <textarea id="workoutNotes" name="notes" class="form-control" rows="2" placeholder="Any notes about your workout"></textarea>
+                            </div>
+                            <button type="submit" class="submit-btn">Add Workout</button>
+                        </form>
+                    </div>
+                    
+                    <ul class="items-list">
+                        {% for workout in workouts %}
+                        <li class="item">
+                            <div class="item-content">
+                                <div class="item-title">{{ workout.exercise_type }}</div>
+                                <div class="item-details">{{ workout.duration }} minutes • {{ workout.calories_burned }} calories burned</div>
+                                {% if workout.notes %}
+                                <div class="item-details">Notes: {{ workout.notes }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="item-actions">
+                                <a href="{{ url_for('delete_workout', workout_id=workout.id) }}" class="btn btn-delete"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                        {% if not workouts %}
+                        <div class="empty-state">
+                            <i class="fas fa-running"></i>
+                            <p>No workouts recorded today</p>
+                        </div>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Meals Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-utensils"></i> Today's Meals</h2>
+                        <button class="add-btn" id="showMealForm"><i class="fas fa-plus"></i> Add Meal</button>
+                    </div>
+                    
+                    <div class="form-container" id="mealForm">
+                        <form action="{{ url_for('add_meal') }}" method="POST">
+                            <input type="hidden" name="date" value="{{ today }}">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="mealType">Meal Type</label>
+                                    <select id="mealType" name="meal_type" class="form-control" required>
+                                        <option value="Breakfast">Breakfast</option>
+                                        <option value="Lunch">Lunch</option>
+                                        <option value="Dinner">Dinner</option>
+                                        <option value="Snack">Snack</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="calories">Calories</label>
+                                    <input type="number" id="calories" name="calories" class="form-control" placeholder="250" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="foodItem">Food Item</label>
+                                <input type="text" id="foodItem" name="food_item" class="form-control" placeholder="e.g., Oatmeal with fruits" required>
+                            </div>
+                            <button type="submit" class="submit-btn">Add Meal</button>
+                        </form>
+                    </div>
+                    
+                    <ul class="items-list">
+                        {% for meal in meals %}
+                        <li class="item">
+                            <div class="item-content">
+                                <div class="item-title">{{ meal.meal_type }}</div>
+                                <div class="item-details">{{ meal.food_item }} • {{ meal.calories }} calories</div>
+                            </div>
+                            <div class="item-actions">
+                                <a href="{{ url_for('delete_meal', meal_id=meal.id) }}" class="btn btn-delete"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                        {% if not meals %}
+                        <div class="empty-state">
+                            <i class="fas fa-utensils"></i>
+                            <p>No meals recorded today</p>
+                        </div>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="column">
+                <!-- Habits Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-sync-alt"></i> Habits Tracker</h2>
+                        <button class="add-btn" id="showHabitForm"><i class="fas fa-plus"></i> Add Habit</button>
+                    </div>
+                    
+                    <div class="form-container" id="habitForm">
+                        <form action="{{ url_for('add_habit') }}" method="POST">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="habitName">Habit Name</label>
+                                    <input type="text" id="habitName" name="habit_name" class="form-control" placeholder="e.g., Drink 8 glasses of water" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="frequency">Frequency</label>
+                                    <select id="frequency" name="frequency" class="form-control" required>
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="habitGoal">Goal Description</label>
+                                <input type="text" id="habitGoal" name="goal_description" class="form-control" placeholder="e.g., 8 glasses per day">
+                            </div>
+                            <button type="submit" class="submit-btn">Add Habit</button>
+                        </form>
+                    </div>
+                    
+                    <ul class="items-list">
+                        {% for habit in habits %}
+                        <li class="item">
+                            <div class="item-content">
+                                <div class="item-title">{{ habit.habit_name }} <span class="habit-streak">{{ habit.streak }} day streak</span></div>
+                                <div class="item-details">Frequency: {{ habit.frequency }}{% if habit.goal_description %} • Goal: {{ habit.goal_description }}{% endif %}</div>
+                            </div>
+                            <div class="item-actions">
+                                <a href="{{ url_for('complete_habit', habit_id=habit.id) }}" class="btn btn-edit"><i class="fas fa-check"></i></a>
+                                <a href="{{ url_for('delete_habit', habit_id=habit.id) }}" class="btn btn-delete"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                        {% if not habits %}
+                        <div class="empty-state">
+                            <i class="fas fa-sync-alt"></i>
+                            <p>No habits added yet</p>
+                        </div>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Goals Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title"><i class="fas fa-bullseye"></i> Goals</h2>
+                        <button class="add-btn" id="showGoalForm"><i class="fas fa-plus"></i> Add Goal</button>
+                    </div>
+                    
+                    <div class="form-container" id="goalForm">
+                        <form action="{{ url_for('add_goal') }}" method="POST">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="goalCategory">Category</label>
+                                    <select id="goalCategory" name="goal_type" class="form-control" required>
+                                        <option value="weight">Weight</option>
+                                        <option value="running">Running</option>
+                                        <option value="strength">Strength</option>
+                                        <option value="nutrition">Nutrition</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="targetValue">Target Value</label>
+                                    <input type="text" id="targetValue" name="target_value" class="form-control" placeholder="e.g., 60 kg" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="currentValue">Current Value</label>
+                                    <input type="text" id="currentValue" name="current_value" class="form-control" placeholder="e.g., 70 kg">
+                                </div>
+                                <div class="form-group">
+                                    <label for="targetDate">Target Date</label>
+                                    <input type="date" id="targetDate" name="target_date" class="form-control" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="submit-btn">Add Goal</button>
+                        </form>
+                    </div>
+                    
+                    <ul class="items-list">
+                        {% for goal in goals %}
+                        <li class="item">
+                            <div class="item-content">
+                                <div class="item-title">{{ goal.goal_type|title }} Goal</div>
+                                <div class="item-details">
+                                    Current: {{ goal.current_value or 0 }} → 
+                                    Target: {{ goal.target_value or "N/A" }} 
+                                    {% if goal.target_date %} by {{ goal.target_date }}{% endif %}
+                                </div>
+                    
+                                {% if goal.target_value and goal.current_value %}
+                                    {% set raw_progress = (goal.current_value / goal.target_value) * 100 %}
+                                    {% set progress = raw_progress if raw_progress < 100 else 100 %}
+                                    <div class="goal-progress">
+                                        <div class="progress-bar" style="width: 75%;"></div>
+
+                                    </div>
+                                    <div class="item-details">Progress: {{ progress | round(1) }}%</div>
+                                {% else %}
+                                    <div class="item-details">No progress data available</div>
+                                {% endif %}
+                            </div>
+                    
+                            <div class="item-actions">
+                                <form action="{{ url_for('update_goal', goal_id=goal.id) }}" method="POST" class="inline-form">
+                                    <input type="number" step="0.1" name="current_value" placeholder="Update progress" class="form-control">
+                                    <button type="submit" class="btn btn-edit"><i class="fas fa-sync-alt"></i></button>
+                                </form>
+                                <a href="{{ url_for('delete_goal', goal_id=goal.id) }}" class="btn btn-delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    
+                        {% if not goals %}
+                        <div class="empty-state">
+                            <i class="fas fa-bullseye"></i>
+                            <p>No goals set yet</p>
+                        </div>
+                        {% endif %}
+                    </ul>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

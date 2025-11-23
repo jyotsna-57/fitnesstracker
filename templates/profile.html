@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Fitness Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="app-title">
+            <i class="fas fa-heartbeat"></i>
+            <h1>Fitness Tracker</h1>
+        </div>
+        <nav>
+            <a href="{{ url_for('index') }}">Dashboard</a>
+            <a href="{{ url_for('reports') }}">Reports</a>
+            <a href="{{ url_for('profile') }}">Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title"><i class="fas fa-user"></i> Your Profile</h2>
+            </div>
+            <form action="{{ url_for('update_profile') }}" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ user.name }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="age">Age:</label>
+                        <input type="number" id="age" name="age" class="form-control" value="{{ user.age or '' }}">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gender">Gender:</label>
+                        <select id="gender" name="gender" class="form-control">
+                            <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if user.gender == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="height">Height (cm):</label>
+                        <input type="number" step="0.1" id="height" name="height" class="form-control" value="{{ user.height or '' }}">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="weight">Weight (kg):</label>
+                        <input type="number" step="0.1" id="weight" name="weight" class="form-control" value="{{ user.weight or '' }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="goal_weight">Goal Weight (kg):</label>
+                        <input type="number" step="0.1" id="goal_weight" name="goal_weight" class="form-control" value="{{ user.goal_weight or '' }}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="daily_calorie_target">Daily Calorie Target:</label>
+                    <input type="number" id="daily_calorie_target" name="daily_calorie_target" class="form-control" value="{{ user.daily_calorie_target or 2000 }}">
+                </div>
+                
+                <button type="submit" class="submit-btn">Update Profile</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
